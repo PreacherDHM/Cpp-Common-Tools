@@ -4,6 +4,20 @@
 #include <cstdarg>
 #include <stdio.h>
 #include <cstring>
+
+#ifdef _WIN64
+#include <Windows.h>
+
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+static DWORD outModeInit;
+static HANDLE stdoutHandle;
+#define ___INIT() { DWORD outMode = 0; stdoutHandle = GetStdHandle(STD_OUT_HANDLE); if (stdoutHandle == INVALID_HANDLE_VALUE) { exit(GetLastError()); } if (!GetConsleMode(stdoutHandle, &outMode)) { exit(GetLastError()); } outModeInit = outMode; outMdoe = ENABLE_VIRTUAL_TERMINAL_PROCESSING; if (!SetConsoleMode(stdoutHandle, outMode)) { exit(GetLastError()); } printf("\x1b[0m"); }
+#else
+#define ___INIT()
+#endif
+
 #define P_COLOR_INFO "\033[0;36m"
 #define P_COLOR_ERROR "\033[0;31m"
 #define P_COLOR_CAT "\033[1;36m"
@@ -12,9 +26,9 @@
 #define P_COLOR_TAG "\033[1;33m"
 #define P_COLOR_NC "\033[0m"
 
-#define pInfo(tag, message) printf("[%sINFO%s]%s %s%s: %s\n",P_COLOR_INFO,P_COLOR_NC, P_COLOR_TAG,  tag, P_COLOR_NC, message)
-#define pError(tag, message) printf("[%sERROR%s]%s %s%s: %s\n",P_COLOR_ERROR,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC, message)  
-#define pCat(Catagory, tag, message) printf("[%s%s%s]%s %s%s: %s%s%s\n",P_COLOR_CAT,Catagory,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC,P_COLOR_CAT_MESSAGE, message, P_COLOR_NC)
+#define pInfo(tag, message)  ___INIT(); printf("[%sINFO%s]%s %s%s: %s\n",P_COLOR_INFO,P_COLOR_NC, P_COLOR_TAG,  tag, P_COLOR_NC, message)
+#define pError(tag, message) ___INIT(); printf("[%sERROR%s]%s %s%s: %s\n",P_COLOR_ERROR,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC, message)  
+#define pCat(Catagory, tag, message) ___INIT(); printf("[%s%s%s]%s %s%s: %s%s%s\n",P_COLOR_CAT,Catagory,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC,P_COLOR_CAT_MESSAGE, message, P_COLOR_NC)
 
 //pChart configuration types
 #define CHART_TYPE_COLOMS 0
@@ -65,8 +79,14 @@ inline void pList(const char* Catagory, const char* tag, const int itemCount, co
     int CatagoryCount = 0;
     int currentCount = 0;
     int itemSize = 15;
+#ifdef _WIN64
+    int *CatagorySizes = new int[CatArgs];
+    char** items = new char*[CatArgs];
+    ___INIT();
+#else 
     int CatagorySizes[CatArgs];
     const char* items[itemCount];
+#endif
     int strSize;
 
     va_list args;
