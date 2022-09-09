@@ -13,7 +13,7 @@
 #endif
 static DWORD outModeInit;
 static HANDLE stdoutHandle;
-#define ___INIT() { DWORD outMode = 0; stdoutHandle = GetStdHandle(STD_OUT_HANDLE); if (stdoutHandle == INVALID_HANDLE_VALUE) { exit(GetLastError()); } if (!GetConsleMode(stdoutHandle, &outMode)) { exit(GetLastError()); } outModeInit = outMode; outMdoe = ENABLE_VIRTUAL_TERMINAL_PROCESSING; if (!SetConsoleMode(stdoutHandle, outMode)) { exit(GetLastError()); } printf("\x1b[0m"); }
+#define ___INIT() { DWORD outMode = 0; stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE); if (stdoutHandle == INVALID_HANDLE_VALUE) { exit(GetLastError()); } if (!GetConsoleMode(stdoutHandle, &outMode)) { exit(GetLastError()); } outModeInit = outMode; outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; if (!SetConsoleMode(stdoutHandle, outMode)) { exit(GetLastError()); } printf("\x1b[0m"); }
 #else
 #define ___INIT()
 #endif
@@ -35,13 +35,13 @@ static HANDLE stdoutHandle;
 #define CHART_TYPE_ROWS 1
 //pChat null phrase/char
 #define CHART_NULL_CHAR "#"
-#define ___Col_start() printf("│")
-#define ___Col_end() printf("│")
+#define ___Col_start() printf("|")
+#define ___Col_end() printf("|")
 #define ___Col_print(color, Item) printf(" %s%s%s", color, Item, P_COLOR_NC)
 #define ___Col_Next() printf("\n")
 #define ___Col_Spacing(spacing, spaceChar) for(int ss = 0; ss < spacing; ss++) { printf(spaceChar); }
 #define ___Col_Center(spacing, spaceChar, color, Str) { for(int ss = 0; ss < spacing + 1; ss++) {  if(ss == (spacing/2 ) - (strlen(Str)/2)) { ss += strlen(Str); ___Col_print(color,Str);  }printf(spaceChar);} }
-#define ___Col_Seperator(spaceSize, lableCount) for(int x = 0; x < lableCount; x++) { ___Col_start(); printf(":"); for(int i = 0; i < spaceSize[x]; i++) { printf("─"); } printf(":"); } ___Col_end();
+#define ___Col_Seperator(spaceSize, lableCount) for(int x = 0; x < lableCount; x++) { ___Col_start(); printf(":"); for(int i = 0; i < spaceSize[x]; i++) { printf("-"); } printf(":"); } ___Col_end();
 
 
 inline void pList(const char* Catagory, const char* tag, const int itemCount, const char* item...){
@@ -74,7 +74,7 @@ inline void pList(const char* Catagory, const char* tag, const int itemCount, co
         | Lable 2 |:| item 4 | item 5 | item 6 |
         | Lable 3 |:| item 7 | item 8 | item 9 |
 */
- void pChart(const char** Catagories, const int chartType,const int CatArgs, const int itemCount, const char* item...) {
+ void pChart(const char** Catagories, const int chartType,const int CatArgs, const int itemCount, char* item...) {
     int CatagoryLen = CatArgs;
     int CatagoryCount = 0;
     int currentCount = 0;
