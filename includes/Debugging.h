@@ -5,15 +5,17 @@
 #include <stdio.h>
 #include <cstring>
 
+//Windows terminal init
 #ifdef _WIN64
 #include <Windows.h>
 
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
-static DWORD outModeInit;
-static HANDLE stdoutHandle;
-#define ___INIT() { DWORD outMode = 0; stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE); if (stdoutHandle == INVALID_HANDLE_VALUE) { exit(GetLastError()); } if (!GetConsoleMode(stdoutHandle, &outMode)) { exit(GetLastError()); } outModeInit = outMode; outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; if (!SetConsoleMode(stdoutHandle, outMode)) { exit(GetLastError()); } printf("\x1b[0m"); }
+static DWORD ___outModeInit;
+static HANDLE ___stdoutHandle;
+static bool ___ran = false;
+#define ___INIT() if(!___ran){ ___ran = true;  DWORD outMode = 0; ___stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE); if (___stdoutHandle == INVALID_HANDLE_VALUE) { exit(GetLastError()); } if (!GetConsoleMode(___stdoutHandle, &outMode)) { exit(GetLastError()); } ___outModeInit = outMode; outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; if (!SetConsoleMode(___stdoutHandle, outMode)) { exit(GetLastError()); } printf("\x1b[0m"); }
 #else
 #define ___INIT()
 #endif
@@ -43,6 +45,7 @@ static HANDLE stdoutHandle;
 #define ___Col_Center(spacing, spaceChar, color, Str) { for(int ss = 0; ss < spacing + 1; ss++) {  if(ss == (spacing/2 ) - (strlen(Str)/2)) { ss += strlen(Str); ___Col_print(color,Str);  }printf(spaceChar);} }
 #define ___Col_Seperator(spaceSize, lableCount) for(int x = 0; x < lableCount; x++) { ___Col_start(); printf(":"); for(int i = 0; i < spaceSize[x]; i++) { printf("-"); } printf(":"); } ___Col_end();
 
+#define ___INIT_COL_AND_SIZE for( int x = 0; x < CatArgs; x++) { int strSize = strlen(Catagories[x]); if(CatagorySizes[x] < strSize) { CatagorySizes[x] = strSize; }} for(int i = 0; i < CatArgs; i++) { CatagorySizes[i] = itemSize; } for(int i = 0; i < itemCount; i+= CatArgs) { for( int x = 0; x < CatArgs; x++) { strSize = strlen(items[i + x]); if(CatagorySizes[x] < strSize) { CatagorySizes[x] = strSize; }}}
 
 inline void pList(const char* Catagory, const char* tag, const int itemCount, const char* item...){
     va_list args;
@@ -74,7 +77,7 @@ inline void pList(const char* Catagory, const char* tag, const int itemCount, co
         | Lable 2 |:| item 4 | item 5 | item 6 |
         | Lable 3 |:| item 7 | item 8 | item 9 |
 */
- void pChart(const char** Catagories, const int chartType,const int CatArgs, const int itemCount, char* item...) {
+inline void pChart(const char** Catagories, const int chartType,const int CatArgs, const int itemCount, char* item...) {
     int CatagoryLen = CatArgs;
     int CatagoryCount = 0;
     int currentCount = 0;
@@ -84,45 +87,59 @@ inline void pList(const char* Catagory, const char* tag, const int itemCount, co
     char** items = new char*[CatArgs];
     ___INIT();
 #else 
-    int CatagorySizes[CatArgs];
+    //if rows then add the catagory len to that catagory size so that every thing
+    //has equal spacing.
+    //else just have the catagory size *for coloms*
+//#if (chartType == CHART_TYPE_ROWS)
+//    int CatagorySizes[1+CatArgs];
+//    printf("\n");
+//#else
+//    int CatagorySizes[CatArgs];
+//#endif
     const char* items[itemCount];
 #endif
     int strSize;
 
     va_list args;
     va_start(args, item);
-
-    for(int i = 0; i < CatArgs; i++) {
-        CatagorySizes[i] = itemSize;
-    }
+ 
 
     for(int i = 0; i < itemCount; i++){
         if(i == 0) {
             items[i] = item;
+            continue;
         }else {
             items[i] = va_arg(args, char*);
         }
     }
 
-    for( int x = 0; x < CatArgs; x++) {
-        int strSize = strlen(Catagories[x]);
-        if(CatagorySizes[x] <= strSize) {
-            CatagorySizes[x] = strSize;
-        }
-    }
-    //Setting the max size for each colom
-    for(int i = 0; i < itemCount; i+= CatArgs) {
-        for( int x = 0; x < CatArgs; x++) {
-            strSize = strlen(items[i + x]);
-            if(CatagorySizes[x] < strSize) {
-                CatagorySizes[x] = strSize;
-            }
-        }       
-    }
+
+    //TODO trying to add this into the different sections
     va_end(args);
 
     //Chart type coloms
     if(chartType == CHART_TYPE_COLOMS) {
+        int CatagorySizes[CatArgs];
+        for(int i = 0; i < CatArgs; i++) {
+            CatagorySizes[i] = itemSize;
+        }
+
+
+        for( int x = 0; x < CatArgs; x++) {
+            int strSize = strlen(Catagories[x]);
+            if(CatagorySizes[x] < strSize) {
+                CatagorySizes[x] = strSize;
+            }
+        }
+
+        for(int i = 0; i < itemCount; i+= CatArgs) {
+            for( int x = 0; x < CatArgs; x++) {
+                strSize = strlen(items[i + x]);
+                if(CatagorySizes[x] < strSize) {
+                    CatagorySizes[x] = strSize;
+                }
+            }       
+        }
         //printing lable
         while(CatagoryCount < CatagoryLen) {
             ___Col_start();
@@ -151,6 +168,49 @@ inline void pList(const char* Catagory, const char* tag, const int itemCount, co
             b++;
         }
         ___Col_Next();
+    }
+
+    if(chartType == CHART_TYPE_ROWS) {
+        int CatagorySizes[1+CatArgs];
+
+
+        // Setting the deflat spacing size
+        for(int i = 0; i < CatArgs + 1; i++) {
+            CatagorySizes[i] = itemSize;
+        }
+
+        // first seeing if any of the catagorys are bigger then the defalt
+        for( int x = 0; x < CatArgs; x++) {
+            int strSize = strlen(Catagories[x]);
+            if(CatagorySizes[x] < strSize) {
+                CatagorySizes[x] = strSize;
+            }
+        }
+
+        for(int i = 0; i < itemCount; i += CatArgs) {
+            for( int x = 0; x < CatArgs; x++) {
+                strSize = strlen(items[i + x]);
+                if(CatagorySizes[x+ 1] < strSize) {
+                    CatagorySizes[x + 1] = strSize;
+                }
+            }       
+            
+        }
+
+        int lableCount = 0;
+        for(int i = 0; i < itemCount; i += CatArgs){
+            //print lable;
+            printf("|");
+            ___Col_Center(CatagorySizes[0], " ", P_COLOR_TAG, Catagories[lableCount]);
+            printf("|%s->%s|",P_COLOR_ERROR, P_COLOR_NC);
+            for(int x = 0; x < CatArgs; x++){
+                // print contents
+                ___Col_Center(CatagorySizes[x + 1], " ", P_COLOR_CAT, items[i+x]);
+                ___Col_start();
+            }
+            printf("\n");
+            lableCount++;
+        }
     }
        
    
