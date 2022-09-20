@@ -44,7 +44,7 @@ static bool ___ran = false;
 #define ___Col_Spacing(spacing, spaceChar) for(int ss = 0; ss < spacing; ss++) { printf(spaceChar); }
 #define ___Col_Center(spacing, spaceChar, color, Str) { for(int ss = 0; ss < spacing + 1; ss++) {  if(ss == (spacing/2 ) - (strlen(Str)/2)) { ss += strlen(Str); ___Col_print(color,Str);  }printf(spaceChar);} }
 #define ___Col_Seperator(spaceSize, lableCount) for(int x = 0; x < lableCount; x++) { ___Col_start(); printf(":"); for(int i = 0; i < spaceSize[x]; i++) { printf("-"); } printf(":"); } ___Col_end();
-
+//Currently not being used ___INIT_COL_AND_SIZE
 #define ___INIT_COL_AND_SIZE for( int x = 0; x < CatArgs; x++) { int strSize = strlen(Catagories[x]); if(CatagorySizes[x] < strSize) { CatagorySizes[x] = strSize; }} for(int i = 0; i < CatArgs; i++) { CatagorySizes[i] = itemSize; } for(int i = 0; i < itemCount; i+= CatArgs) { for( int x = 0; x < CatArgs; x++) { strSize = strlen(items[i + x]); if(CatagorySizes[x] < strSize) { CatagorySizes[x] = strSize; }}}
 
 inline void pList(const char* Catagory, const char* tag, const int itemCount, const char* item...){
@@ -65,14 +65,14 @@ inline void pList(const char* Catagory, const char* tag, const int itemCount, co
 
     **CHART_TYPE_ROWS** and **CHART_TYPE_COLOMS**
     
-# CHART_TYPE_COLOMS prints the lables on top and the items under thows coloms.
+- *CHART_TYPE_COLOMS* prints the lables on top and the items under thows coloms.
         | Lable 1 | Lable 2 |
         |:-------:|:-------:|
         | Item 1  | Item 2  |
         | Item 3  | Item 4  |
         | Item 5  | Item 6  |
 
-# CHART_TYPE_ROWS puts the lables on each row and the items along the right side.
+- *CHART_TYPE_ROWS* puts the lables on each row and the items along the right side.
         | Lable 1 |:| item 1 | item 2 | item 3 |
         | Lable 2 |:| item 4 | item 5 | item 6 |
         | Lable 3 |:| item 7 | item 8 | item 9 |
@@ -82,20 +82,11 @@ inline void pChart(const char** Catagories, const int chartType,const int CatArg
     int CatagoryCount = 0;
     int currentCount = 0;
     int itemSize = 15;
-#ifdef _WIN64
+#ifdef _WIN64 //if it is a win64 OS then it will build this.
     int *CatagorySizes = new int[CatArgs];
     char** items = new char*[CatArgs];
     ___INIT();
-#else 
-    //if rows then add the catagory len to that catagory size so that every thing
-    //has equal spacing.
-    //else just have the catagory size *for coloms*
-//#if (chartType == CHART_TYPE_ROWS)
-//    int CatagorySizes[1+CatArgs];
-//    printf("\n");
-//#else
-//    int CatagorySizes[CatArgs];
-//#endif
+#else //if its any other system then build this.
     const char* items[itemCount];
 #endif
     int strSize;
@@ -114,12 +105,16 @@ inline void pChart(const char** Catagories, const int chartType,const int CatArg
     }
 
 
-    //TODO trying to add this into the different sections
     va_end(args);
 
-    //Chart type coloms
+    //coloms mode
     if(chartType == CHART_TYPE_COLOMS) {
+#ifdef _WIN64 // windows stuff to create an array
+              //
+        int CatagorySizes[] = new int[CatArgs];
+#else //linux / gcc
         int CatagorySizes[CatArgs];
+#endif
         for(int i = 0; i < CatArgs; i++) {
             CatagorySizes[i] = itemSize;
         }
@@ -171,8 +166,11 @@ inline void pChart(const char** Catagories, const int chartType,const int CatArg
     }
 
     if(chartType == CHART_TYPE_ROWS) {
-        int CatagorySizes[1+CatArgs];
-
+#ifdef _WIN64 // windows stuff to create an array
+        int CatagorySizes[] = new int[CatArgs + 1];
+#else //linux / gcc
+        int CatagorySizes[CatArgs + 1];
+#endif
 
         // Setting the deflat spacing size
         for(int i = 0; i < CatArgs + 1; i++) {
@@ -187,6 +185,7 @@ inline void pChart(const char** Catagories, const int chartType,const int CatArg
             }
         }
 
+        // second seeing if any of the items are bigger then any of the catagorys
         for(int i = 0; i < itemCount; i += CatArgs) {
             for( int x = 0; x < CatArgs; x++) {
                 strSize = strlen(items[i + x]);
@@ -194,17 +193,17 @@ inline void pChart(const char** Catagories, const int chartType,const int CatArg
                     CatagorySizes[x + 1] = strSize;
                 }
             }       
-            
         }
 
+        //outputing to console
         int lableCount = 0;
         for(int i = 0; i < itemCount; i += CatArgs){
             //print lable;
             printf("|");
             ___Col_Center(CatagorySizes[0], " ", P_COLOR_TAG, Catagories[lableCount]);
             printf("|%s->%s|",P_COLOR_ERROR, P_COLOR_NC);
+            // print contents
             for(int x = 0; x < CatArgs; x++){
-                // print contents
                 ___Col_Center(CatagorySizes[x + 1], " ", P_COLOR_CAT, items[i+x]);
                 ___Col_start();
             }
@@ -212,8 +211,6 @@ inline void pChart(const char** Catagories, const int chartType,const int CatArg
             lableCount++;
         }
     }
-       
-   
 };
 
 #endif
