@@ -49,10 +49,10 @@ int main() {
     pChart(types, CHART_TYPE_COLOMS, 3, 6, "Item1", "Item2", "Item3", "Item", "Item", "This is a resising test for the items", "Item");
     printf("\n");
     pChart(types, CHART_TYPE_ROWS, 3, 9, "Item1", "Item2","Item2","Item2","Item2", "Item3", "Item", "Item", "This is a resising test for the items", "Item");
-    printf("debuging vars\n");
     int i = 255;
-    int y = 255;
+    const int y = 255;
+    char* test = "testingggg";
     PEEP(i);
-    PEEP(y);
+    BREAK_POINT(PEEP(y););
 	return 0;
 }
