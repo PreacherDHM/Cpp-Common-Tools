@@ -7,7 +7,6 @@
 
 #define __GET_NAME(v) #v
 
-
 #define DEBUGING
 #ifdef DEBUGING
 #include <iostream>
@@ -32,8 +31,6 @@
  */
 struct PeepLog {
     FILE *log;
-    int timeStamp;
-    int *data[];
 };
 
 static PeepLog __log = PeepLog();
@@ -131,15 +128,15 @@ inline void echoOn() {
 }
 
 
-long timeStamp(){
+static long __timeStamp(){
     struct timespec ts;
     timespec_get(&ts,TIME_UTC);
     
     return  1000000 * ts.tv_sec + ts.tv_nsec;
 }
 #define INIT_LOG_FILE ___initDebug();
-#define BREAK_POINT(line) { ___writeDataBreakPoint(timeStamp(), #line, __LINE__); printf("| \033[1;37m%s\033[0m | \033[0;31m%d\033[0m | \033[0;33m%s \033[1;36m<--- \033[4;37mBREAK POINT\033[0m\n", __FILE_NAME__, __LINE__, #line); canonOff(); echoOff(); while (true) { CInput(); if (__c == 'b') { canonOn(); echoOn(); fputs("\r\e[?25h", stdout); break; }};}line;
-#define PEEP(var) { ___writeDataPeep(timeStamp(), var, #var, __LINE__); printf("TIME: %s%ld%s| \033[031mNAME \033[0;36m%s\033[0m | \033[031mADDRESS \033[0;36m%x \033[0m| \033[031mHEX \033[0;36m%x\033[0m| \033[031mDES \033[0;36m%i \033[0m|\n",___Color_Time, timeStamp(), ___NOCL, __GET_NAME(var), &var, var, var);}
+#define BREAK_POINT(line) { ___writeDataBreakPoint(__timeStamp(), #line, __LINE__); printf("| \033[1;37m%s\033[0m | \033[0;31m%d\033[0m | \033[0;33m%s \033[1;36m<--- \033[4;37mBREAK POINT\033[0m\n", __FILE_NAME__, __LINE__, #line); canonOff(); echoOff(); while (true) { CInput(); if (__c == 'b') { canonOn(); echoOn(); fputs("\r\e[?25h", stdout); break; }};}line;
+#define PEEP(var) { ___writeDataPeep(__timeStamp(), var, #var, __LINE__); printf("TIME: %s%ld%s| \033[031mNAME \033[0;36m%s\033[0m | \033[031mADDRESS \033[0;36m%x \033[0m| \033[031mHEX \033[0;36m%x\033[0m| \033[031mDES \033[0;36m%i \033[0m|\n",___Color_Time, __timeStamp(), ___NOCL, __GET_NAME(var), &var, var, var);}
 #else
 #define PEEP(var)
 #define BREAK_POINT(line) #line
