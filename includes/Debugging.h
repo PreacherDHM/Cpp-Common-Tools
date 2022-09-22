@@ -29,7 +29,7 @@ static bool ___ran = false;
 #define P_COLOR_NC "\033[0m"
 
 #define pInfo(tag, message)  ___INIT(); printf("[%sINFO%s]%s %s%s: %s\n",P_COLOR_INFO,P_COLOR_NC, P_COLOR_TAG,  tag, P_COLOR_NC, message)
-#define pError(tag, message) ___INIT(); printf("[%sERROR%s]%s %s%s: %s\n",P_COLOR_ERROR,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC, message)  
+#define pError(tag, message) ___INIT(); printf("[%sERROR%s]%s %s%s: LINE %d |%s\n",P_COLOR_ERROR,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC,__LINE__, message)  
 #define pCat(Catagory, tag, message) ___INIT(); printf("[%s%s%s]%s %s%s: %s%s%s\n",P_COLOR_CAT,Catagory,P_COLOR_NC,P_COLOR_TAG, tag, P_COLOR_NC,P_COLOR_CAT_MESSAGE, message, P_COLOR_NC)
 
 //pChart configuration types
